@@ -137,6 +137,16 @@ class SearchController extends Notifier<SearchUiState> {
     // 관련 테스트:
     // - test/features/search/presentation/providers/search_controller_test.dart
 
+    // Note(assignment): toggle 완료 후 provider의 최신 상태로 결과 갱신
+    // — toggle이 비동기이므로 완료 시점의 valueOrNull을 읽어야 정확한 상태 반영
+    _applyFavoriteIds(ref.read(favoriteIdsControllerProvider).valueOrNull);
+
+    if (isAdded) {
+      _showToast(const SearchToastData(message: '관심그룹에 추가되었습니다.'));
+    } else {
+      dismissToast();
+    }
+
     return isAdded;
   }
 
