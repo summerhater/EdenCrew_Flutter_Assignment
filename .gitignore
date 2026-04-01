@@ -68,3 +68,8 @@ app.*.map.json
 
 # Legacy / migration
 migrate_working_dir/
+
+#applicant custom added_260401
+/.claude
+/docs
+CLAUDE.md

@@ -25,8 +25,18 @@ class NaverAutocompleteItemDto {
     // - url
     // - nationCode
     // - category
-    throw UnimplementedError(
-      'TODO(assignment): implement NaverAutocompleteItemDto.fromJson',
+    // throw UnimplementedError(
+    //   'TODO(assignment): implement NaverAutocompleteItemDto.fromJson',
+    // );
+
+    return NaverAutocompleteItemDto(
+      code:       _readString(json['code']),
+      name:       _readString(json['name']),
+      typeCode:   _readString(json['typeCode']),
+      typeName:   _readString(json['typeName']),
+      url:        _readString(json['url']),
+      nationCode: _readString(json['nationCode']),
+      category:   _readString(json['category']),
     );
   }
 
@@ -69,8 +79,21 @@ class NaverRealtimeQuoteDto {
     // - lv: low price
     // - aq: accumulated trading volume
     // - countOfListedStock: listed share count (optional)
-    throw UnimplementedError(
-      'TODO(assignment): implement NaverRealtimeQuoteDto.fromJson',
+    // throw UnimplementedError(
+    //   'TODO(assignment): implement NaverRealtimeQuoteDto.fromJson',
+    // );
+
+    // Note(assignment): countOfListedStock은 없을 경우 0으로
+    // fallback하여 marketCap 계산 시 null 예외 방지
+    return NaverRealtimeQuoteDto(
+      symbol:                   _readString(json['cd']),
+      currentPrice:             _readDouble(json['nv']),
+      previousClose:            _readDouble(json['pcv']),
+      openPrice:                _readDouble(json['ov']),
+      highPrice:                _readDouble(json['hv']),
+      lowPrice:                 _readDouble(json['lv']),
+      accumulatedTradingVolume: _readInt(json['aq']),
+      countOfListedStock:       _readNullableInt(json['countOfListedStock']) ?? 0,
     );
   }
 
@@ -106,8 +129,14 @@ class NaverChartMetadataDto {
 
   factory NaverChartMetadataDto.fromJson(Map<String, dynamic> json) {
     // TODO(assignment): Map the chart metadata payload into this DTO.
-    throw UnimplementedError(
-      'TODO(assignment): implement NaverChartMetadataDto.fromJson',
+    // throw UnimplementedError(
+    //   'TODO(assignment): implement NaverChartMetadataDto.fromJson',
+    // );
+
+    return NaverChartMetadataDto(
+      symbol:               _readString(json['symbolCode']),
+      stockName:            _readString(json['stockName']),
+      stockExchangeNameKor: _readString(json['stockExchangeNameKor']),
     );
   }
 
@@ -128,8 +157,19 @@ class NaverHistoricalPriceDto {
 
   factory NaverHistoricalPriceDto.fromJson(Map<String, dynamic> json) {
     // TODO(assignment): Parse one historical OHLCV row.
-    throw UnimplementedError(
-      'TODO(assignment): implement NaverHistoricalPriceDto.fromJson',
+    // throw UnimplementedError(
+    //   'TODO(assignment): implement NaverHistoricalPriceDto.fromJson',
+    // );
+
+    // Note(assignment): _readLocalDate가 yyyyMMdd 8자리 문자열을 DateTime으로 변환하며
+    // normalizeAsOfDate로 시간 정보를 제거 — 날짜 동등 비교 시 시간 불일치 방지
+    return NaverHistoricalPriceDto(
+      localDate:                _readLocalDate(json['localDate']),
+      closePrice:               _readDouble(json['closePrice']),
+      openPrice:                _readDouble(json['openPrice']),
+      highPrice:                _readDouble(json['highPrice']),
+      lowPrice:                 _readDouble(json['lowPrice']),
+      accumulatedTradingVolume: _readInt(json['accumulatedTradingVolume']),
     );
   }
 
@@ -151,8 +191,19 @@ class NaverHistoricalChartDto {
   factory NaverHistoricalChartDto.fromJson(Map<String, dynamic> json) {
     // TODO(assignment): Parse the chart wrapper and convert each priceInfos
     // entry with NaverHistoricalPriceDto.fromJson.
-    throw UnimplementedError(
-      'TODO(assignment): implement NaverHistoricalChartDto.fromJson',
+    // throw UnimplementedError(
+    //   'TODO(assignment): implement NaverHistoricalChartDto.fromJson',
+    // );
+
+    // Note(assignment): json['code'] 키를 symbol에 매핑
+    // —> API 응답의 최상위 식별자가 'code'이므로
+    final rawPriceInfos = json['priceInfos'] as List<dynamic>;
+    return NaverHistoricalChartDto(
+      symbol:     _readString(json['code']),
+      periodType: _readString(json['periodType']),
+      priceInfos: rawPriceInfos
+          .map((e) => NaverHistoricalPriceDto.fromJson(e as Map<String, dynamic>))
+          .toList(growable: false),
     );
   }
 
