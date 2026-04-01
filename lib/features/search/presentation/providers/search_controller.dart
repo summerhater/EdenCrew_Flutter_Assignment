@@ -71,12 +71,27 @@ class SearchController extends Notifier<SearchUiState> {
       return;
     }
 
+    // TODO(assignment): favoriteIdsControllerProvider의 현재 값을 읽어서
+    // 첫 검색 결과에도 isFavorite가 반영되도록 연결하세요.
+    // 관련 테스트:
+    // - test/features/search/presentation/providers/search_controller_test.dart
+
+    // Note(assignment): 검색 결과 수신 직후 provider의 현재 값으로 isFavorite를 동기화
+    // — ref.listen은 이후 변경만 감지하므로 최초 결과에는 수동 적용이 필요
+    final currentFavoriteIds =
+        ref.read(favoriteIdsControllerProvider).valueOrNull;
     state = state.copyWith(
-      // TODO(assignment): favoriteIdsControllerProvider의 현재 값을 읽어서
-      // 첫 검색 결과에도 isFavorite가 반영되도록 연결하세요.
-      // 관련 테스트:
-      // - test/features/search/presentation/providers/search_controller_test.dart
-      results: result,
+      results: result.whenData(
+        (items) => currentFavoriteIds == null
+            ? items
+            : items
+                  .map(
+                    (item) => item.copyWith(
+                      isFavorite: currentFavoriteIds.contains(item.id),
+                    ),
+                  )
+                  .toList(growable: false),
+      ),
       selectedItemId: null,
     );
   }
