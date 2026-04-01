@@ -24,6 +24,13 @@ class SearchController extends Notifier<SearchUiState> {
     // 즐겨찾기 상태가 바뀔 때마다 현재 검색 결과의 isFavorite를 다시 매핑하세요.
     // 관련 테스트:
     // - test/features/search/presentation/providers/search_controller_test.dart
+
+    // Note(assignment): ref.watch 대신 ref.listen 사용 — watch는 build 전체를 재실행하므로
+    // 검색 상태가 초기화될 수 있음. listen은 콜백만 호출하므로 결과만 갱신 가능
+    ref.listen<AsyncValue<Set<String>>>(
+      favoriteIdsControllerProvider,
+      (previous, next) => _applyFavoriteIds(next.valueOrNull),
+    );
     return const SearchUiState();
   }
 
