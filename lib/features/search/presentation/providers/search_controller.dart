@@ -142,6 +142,21 @@ class SearchController extends Notifier<SearchUiState> {
     if (favoriteIds == null) {
       return;
     }
+    // Note(assignment): results에 값이 없으면 매핑 대상이 없으므로 조기 반환
+    if (!state.results.hasValue) return;
+
+    final updatedItems = state.results.requireValue
+        .map((item) => item.copyWith(isFavorite: favoriteIds.contains(item.id)))
+        .toList(growable: false);
+
+    // Note(assignment): 즐겨찾기 변경으로 선택된 아이템이 사라진 경우 selectedItemId 해제
+    final selectedStillPresent = updatedItems.any(
+      (item) => item.id == state.selectedItemId,
+    );
+    state = state.copyWith(
+      results: AsyncData(updatedItems),
+      selectedItemId: selectedStillPresent ? state.selectedItemId : null,
+    );
   }
 }
 
