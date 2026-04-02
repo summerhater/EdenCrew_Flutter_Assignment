@@ -114,32 +114,83 @@ class _SearchTextColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasQuery = query.trim().isNotEmpty;
     // TODO(assignment): Rebuild this text block to match Figma.
     // Expected shape:
     // - title + subtitle as two RichText widgets
     // - query highlight using splitSearchTextParts()
     // - typography and ellipsis should match the design
+
+    // Note(assignment): splitSearchTextParts가 빈 query를 단일 비하이라이트 파트로
+    // 반환하므로 hasQuery 분기 없이 동일 경로로 처리 — 분기 제거로 코드 단순화
+    final titleParts = splitSearchTextParts(item.name, query);
+    final subtitleParts = splitSearchTextParts(buildSearchSubtitle(item), query);
+
+    // [이전 구현 — 주석 처리]
+    // final hasQuery = query.trim().isNotEmpty;
+    // return Column(
+    //   mainAxisAlignment: MainAxisAlignment.center,
+    //   crossAxisAlignment: CrossAxisAlignment.start,
+    //   children: [
+    //     Text(
+    //       item.name,
+    //       style: hasQuery
+    //           ? AppTypography.searchName.copyWith(decoration: TextDecoration.none)
+    //           : AppTypography.searchName,
+    //       maxLines: 1,
+    //       overflow: TextOverflow.ellipsis,
+    //     ),
+    //     const SizedBox(height: 4),
+    //     Text(
+    //       buildSearchSubtitle(item),
+    //       style: AppTypography.searchMeta,
+    //       maxLines: 1,
+    //       overflow: TextOverflow.ellipsis,
+    //     ),
+    //   ],
+    // );
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          item.name,
-          style: hasQuery
-              ? AppTypography.searchName.copyWith(
-                  decoration: TextDecoration.none,
-                )
-              : AppTypography.searchName,
+        RichText(
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
+          text: TextSpan(
+            children: titleParts
+                .map(
+                  (part) => TextSpan(
+                    text: part.text,
+                    // Note(assignment): 하이라이트 파트만 색상을 교체하고 나머지 폰트
+                    // 속성은 base 스타일에서 상속 — copyWith로 최소 변경
+                    style: part.isHighlighted
+                        ? AppTypography.searchName.copyWith(
+                            color: AppColors.mainAndAccent.point_b980ff,
+                          )
+                        : AppTypography.searchName,
+                  ),
+                )
+                .toList(growable: false),
+          ),
         ),
         const SizedBox(height: 4),
-        Text(
-          buildSearchSubtitle(item),
-          style: AppTypography.searchMeta,
+        RichText(
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
+          text: TextSpan(
+            children: subtitleParts
+                .map(
+                  (part) => TextSpan(
+                    text: part.text,
+                    style: part.isHighlighted
+                        ? AppTypography.searchMeta.copyWith(
+                            color: AppColors.mainAndAccent.point_b980ff,
+                          )
+                        : AppTypography.searchMeta,
+                  ),
+                )
+                .toList(growable: false),
+          ),
         ),
       ],
     );
