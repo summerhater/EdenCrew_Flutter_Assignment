@@ -86,15 +86,78 @@ class SearchResultRow extends StatelessWidget {
                     borderRadius: BorderRadius.circular(4),
                     border: Border.all(color: AppColors.border.border_5_3b3e53),
                   ),
-                  child: InkWell(
-                    onTap: () => onActionTap('TODO'),
-                    child: Center(
-                      child: Text(
-                        'TODO(assignment): SearchActionBar를 Figma 기준으로 재구성하세요.',
-                        style: AppTypography.searchMeta,
-                        textAlign: TextAlign.center,
+                  // [이전 구현 — 주석 처리]
+                  // child: InkWell(
+                  //   onTap: () => onActionTap('TODO'),
+                  //   child: Center(
+                  //     child: Text(
+                  //       'TODO(assignment): SearchActionBar를 Figma 기준으로 재구성하세요.',
+                  //       style: AppTypography.searchMeta,
+                  //       textAlign: TextAlign.center,
+                  //     ),
+                  //   ),
+                  // ),
+
+                  // Note(assignment): 뉴스/종목토론 두 액션을 동등 비율(Expanded)로 배치
+                  // — 수직 구분선은 컨테이너 border와 동일한 색상으로 시각적 일체감 유지
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          key: const Key('search-action-뉴스'),
+                          onTap: () => onActionTap('뉴스'),
+                          behavior: HitTestBehavior.opaque,
+                          child: Container(
+                            key: const Key('search-action-content-뉴스'),
+                            alignment: Alignment.center,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                AppSvgIcon(
+                                  assetPath: AppAssets.actionNews,
+                                  width: AppAssetSizes.actionNews.width,
+                                  height: AppAssetSizes.actionNews.height,
+                                  color: AppColors.text.text_fafafa,
+                                ),
+                                const SizedBox(width: 6),
+                                Text('뉴스', style: AppTypography.action),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
+                      Container(
+                        width: 1,
+                        height: double.infinity,
+                        color: AppColors.border.border_5_3b3e53,
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          key: const Key('search-action-종목토론'),
+                          onTap: () => onActionTap('종목토론'),
+                          behavior: HitTestBehavior.opaque,
+                          child: Container(
+                            key: const Key('search-action-content-종목토론'),
+                            alignment: Alignment.center,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                AppSvgIcon(
+                                  assetPath: AppAssets.actionDiscussion,
+                                  width: AppAssetSizes.actionDiscussion.width,
+                                  height: AppAssetSizes.actionDiscussion.height,
+                                  color: AppColors.text.text_fafafa,
+                                ),
+                                const SizedBox(width: 6),
+                                Text('종목토론', style: AppTypography.action),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
