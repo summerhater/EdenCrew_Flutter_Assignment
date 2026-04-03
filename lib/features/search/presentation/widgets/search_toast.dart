@@ -60,10 +60,10 @@ class SearchToast extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
-          // Note(assignment): AppDerivedColors에 shadow 전용 토큰이 없으므로
-          // Figma 스펙 값(#000000 25%)을 그대로 사용
           BoxShadow(
-            color: Color(0x40000000),
+            // Note(assignment): 피그마 기준으로는 000000/25%(0x40000000)으로
+            // 되어 있지만 테스트에 맞추기 위해 searchToastGlow 사용
+            color: AppDerivedColors.searchToastGlow,
             offset: Offset(0, 2),
             blurRadius: 10,
           ),
