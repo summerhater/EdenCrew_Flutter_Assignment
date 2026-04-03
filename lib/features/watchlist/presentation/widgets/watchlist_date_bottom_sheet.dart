@@ -228,15 +228,59 @@ class _WatchlistDateBottomSheetState extends State<WatchlistDateBottomSheet> {
                   ),
                 ),
               ),
+              // [이전 구현 — 주석 처리]
+              // SizedBox(
+              //   height: _pickerHeight,
+              //   child: Center(
+              //     child: Text(
+              //       'TODO(assignment): WatchlistDateBottomSheet body를 재구성하세요.',
+              //       key: const Key('watchlist-date-placeholder'),
+              //       style: AppTypography.searchMeta,
+              //       textAlign: TextAlign.center,
+              //     ),
+              //   ),
+              // ),
+
+              // Note(assignment): 연/월/일 picker를 각각 Expanded로 감싸 동등한
+              // 너비를 배분 — 고정 너비를 주면 다양한 화면 폭에서 오버플로우 위험이 있음
               SizedBox(
                 height: _pickerHeight,
-                child: Center(
-                  child: Text(
-                    'TODO(assignment): WatchlistDateBottomSheet body를 재구성하세요.',
-                    key: const Key('watchlist-date-placeholder'),
-                    style: AppTypography.searchMeta,
-                    textAlign: TextAlign.center,
-                  ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _DateWheelPicker(
+                        pickerKey: const Key('watchlist-date-picker-year'),
+                        itemKeyPrefix: 'watchlist-date-item-year',
+                        controller: _yearController,
+                        values: _years,
+                        selectedValue: _selectedYear,
+                        formatter: (v) => '$v년',
+                        onSelectedItemChanged: _selectYear,
+                      ),
+                    ),
+                    Expanded(
+                      child: _DateWheelPicker(
+                        pickerKey: const Key('watchlist-date-picker-month'),
+                        itemKeyPrefix: 'watchlist-date-item-month',
+                        controller: _monthController,
+                        values: _months,
+                        selectedValue: _selectedMonth,
+                        formatter: (v) => '$v월',
+                        onSelectedItemChanged: _selectMonth,
+                      ),
+                    ),
+                    Expanded(
+                      child: _DateWheelPicker(
+                        pickerKey: const Key('watchlist-date-picker-day'),
+                        itemKeyPrefix: 'watchlist-date-item-day',
+                        controller: _dayController,
+                        values: _days,
+                        selectedValue: _selectedDay,
+                        formatter: (v) => '$v일',
+                        onSelectedItemChanged: _selectDay,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 32),
