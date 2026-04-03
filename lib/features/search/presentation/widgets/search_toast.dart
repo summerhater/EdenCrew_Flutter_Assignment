@@ -63,7 +63,8 @@ class SearchToast extends StatelessWidget {
           BoxShadow(
             // Note(assignment): 피그마 기준으로는 000000/25%(0x40000000)으로
             // 되어 있지만 테스트에 맞추기 위해 searchToastGlow 사용
-            color: AppDerivedColors.searchToastGlow,
+            // color: AppDerivedColors.searchToastGlow,
+            color: Color(0x40000000),
             offset: Offset(0, 2),
             blurRadius: 10,
           ),
@@ -119,9 +120,22 @@ class SearchToast extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    message,
-                    style: AppTypography.searchToast,
+                  // Note(assignment): message가 외부 주입이므로 split으로 키워드를
+                  // 분리해서 색상 따로 적용
+                  child: Text.rich(
+                    TextSpan(
+                      style: AppTypography.searchToast,
+                      children: [
+                        // 키워드 앞부분만 추출 (관심목록)
+                        TextSpan(text: message.split('에 추가되었습니다.')[0]),
+                        TextSpan(
+                          text: '에 추가되었습니다.',
+                          style: AppTypography.searchToast.copyWith(
+                            color: AppColors.text.text_3_9e9e9e,
+                          ),
+                        ),
+                      ],
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
