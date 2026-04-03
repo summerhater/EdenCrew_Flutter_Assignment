@@ -104,8 +104,8 @@ class SearchToast extends StatelessWidget {
                         color: AppColors.mainAndAccent.up_f93f62,
                       ),
                       Positioned(
-                        right: 0,
-                        bottom: 0,
+                        right: 10 - (AppAssetSizes.toastCheck.width / 2),
+                        bottom: 10 - (AppAssetSizes.toastCheck.height / 2),
                         child: AppSvgIcon(
                           key: const Key('search-toast-check-icon'),
                           assetPath: AppAssets.toastCheck,
