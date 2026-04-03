@@ -112,15 +112,15 @@ class _SearchActionButton extends StatelessWidget {
   }
 }
 
-class _SearchActionDivider extends StatelessWidget {
-  const _SearchActionDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 1,
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      color: AppColors.border.border_333333,
-    );
-  }
-}
+// class _SearchActionDivider extends StatelessWidget {
+//   const _SearchActionDivider();
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       width: 1,
+//       margin: const EdgeInsets.symmetric(vertical: 10),
+//       color: AppColors.border.border_333333,
+//     );
+//   }
+// }
