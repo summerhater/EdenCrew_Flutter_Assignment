@@ -5,6 +5,7 @@ import '../../../../theme/app_assets.dart';
 import '../../../../theme/app_theme.dart';
 import '../../domain/services/search_text_utils.dart';
 import '../layout/search_layout_spec.dart';
+import 'search_action_bar.dart';
 
 class SearchResultRow extends StatelessWidget {
   const SearchResultRow({
@@ -58,8 +59,10 @@ class SearchResultRow extends StatelessWidget {
                         // TODO(assignment): Match the exact Figma slot size.
                         // This starter keeps the slot slightly oversized so
                         // the related widget test can guide the fix.
-                        slotWidth: 24,
-                        slotHeight: 24,
+
+                        // Note(assignment): 피그마에 맞게 20으로 slot size 변경
+                        slotWidth: 20,
+                        slotHeight: 20,
                         assetWidth: AppAssetSizes.favoriteHeart.width,
                         assetHeight: AppAssetSizes.favoriteHeart.height,
                         color: item.isFavorite
@@ -72,22 +75,22 @@ class SearchResultRow extends StatelessWidget {
               ),
             ),
             if (isSelected) ...[
-              const SizedBox(height: 0),
+              const SizedBox(height: 8),
               Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: layout.horizontalPadding,
                 ),
-                child: Container(
-                  key: Key('search-actions-${item.id}'),
-                  height: SearchLayoutSpec.expandedActionHeight,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: AppColors.bg.bg_2_212121,
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: AppColors.border.border_5_3b3e53),
-                  ),
-                  // [이전 구현 — 주석 처리]
-                  // child: InkWell(
+                // [이전 구현 — 주석 처리]
+                // child: Container(
+                //   key: Key('search-actions-${item.id}'),
+                //   height: SearchLayoutSpec.expandedActionHeight,
+                //   alignment: Alignment.center,
+                //   decoration: BoxDecoration(
+                //     color: AppColors.bg.bg_2_212121,
+                //     borderRadius: BorderRadius.circular(4),
+                //     border: Border.all(color: AppColors.border.border_5_3b3e53),
+                //   ),
+                //   // child: InkWell(
                   //   onTap: () => onActionTap('TODO'),
                   //   child: Center(
                   //     child: Text(
@@ -99,66 +102,77 @@ class SearchResultRow extends StatelessWidget {
                   // ),
 
                   // Note(assignment): 뉴스/종목토론 두 액션을 동등 비율(Expanded)로 배치
-                  // — 수직 구분선은 컨테이너 border와 동일한 색상으로 시각적 일체감 유지
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          key: const Key('search-action-뉴스'),
-                          onTap: () => onActionTap('뉴스'),
-                          behavior: HitTestBehavior.opaque,
-                          child: Container(
-                            key: const Key('search-action-content-뉴스'),
-                            alignment: Alignment.center,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                AppSvgIcon(
-                                  assetPath: AppAssets.actionNews,
-                                  width: AppAssetSizes.actionNews.width,
-                                  height: AppAssetSizes.actionNews.height,
-                                  color: AppColors.text.text_fafafa,
-                                ),
-                                const SizedBox(width: 6),
-                                Text('뉴스', style: AppTypography.action),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        width: 1,
-                        height: double.infinity,
-                        color: AppColors.border.border_5_3b3e53,
-                      ),
-                      Expanded(
-                        child: GestureDetector(
-                          key: const Key('search-action-종목토론'),
-                          onTap: () => onActionTap('종목토론'),
-                          behavior: HitTestBehavior.opaque,
-                          child: Container(
-                            key: const Key('search-action-content-종목토론'),
-                            alignment: Alignment.center,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                AppSvgIcon(
-                                  assetPath: AppAssets.actionDiscussion,
-                                  width: AppAssetSizes.actionDiscussion.width,
-                                  height: AppAssetSizes.actionDiscussion.height,
-                                  color: AppColors.text.text_fafafa,
-                                ),
-                                const SizedBox(width: 6),
-                                Text('종목토론', style: AppTypography.action),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  // 수직 구분선 - 골든 이미지에는 명시되어 있으나 Figma에는 명시되어 있지 않음.
+                  // 컨테이너 border와 동일한 색상으로 시각적 일체감 유지
+                  // child: Row(
+                  //   children: [
+                  //     Expanded(
+                  //       child: GestureDetector(
+                  //         key: const Key('search-action-뉴스'),
+                  //         onTap: () => onActionTap('뉴스'),
+                  //         behavior: HitTestBehavior.opaque,
+                  //         child: Container(
+                  //           key: const Key('search-action-content-뉴스'),
+                  //           alignment: Alignment.center,
+                  //           child: Row(
+                  //             mainAxisAlignment: MainAxisAlignment.center,
+                  //             mainAxisSize: MainAxisSize.min,
+                  //             children: [
+                  //               const SizedBox(width: 2),
+                  //               AppSvgIcon(
+                  //                 assetPath: AppAssets.actionNews,
+                  //                 width: AppAssetSizes.actionNews.width,
+                  //                 height: AppAssetSizes.actionNews.height,
+                  //                 color: AppColors.text.text_fafafa,
+                  //               ),
+                  //               const SizedBox(width: 8),
+                  //               Text('뉴스', style: AppTypography.action),
+                  //             ],
+                  //           ),
+                  //         ),
+                  //       ),
+                  //     ),
+                  //     Container(
+                  //       width: 1,
+                  //       height: 21,
+                  //       color: AppColors.border.border_5_3b3e53,
+                  //     ),
+                  //     Expanded(
+                  //       child: GestureDetector(
+                  //         key: const Key('search-action-종목토론'),
+                  //         onTap: () => onActionTap('종목토론'),
+                  //         behavior: HitTestBehavior.opaque,
+                  //         child: Container(
+                  //           key: const Key('search-action-content-종목토론'),
+                  //           alignment: Alignment.center,
+                  //           child: Row(
+                  //             mainAxisAlignment: MainAxisAlignment.center,
+                  //             mainAxisSize: MainAxisSize.min,
+                  //             children: [
+                  //               const SizedBox(width: 2),
+                  //               AppSvgIcon(
+                  //                 assetPath: AppAssets.actionDiscussion,
+                  //                 width: AppAssetSizes.actionDiscussion.width,
+                  //                 height: AppAssetSizes.actionDiscussion.height,
+                  //                 color: AppColors.text.text_fafafa,
+                  //               ),
+                  //               const SizedBox(width: 6),
+                  //               Text('종목토론', style: AppTypography.action),
+                  //             ],
+                  //           ),
+                  //         ),
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
+                // ),
+
+                // Note(assignment): SearchActionBar가 decoration(border, boxShadow, bg)과
+                // 버튼 레이아웃을 캡슐화 — 직접 구현 시 중복 발생하므로 위임
+                child: SearchActionBar(
+                  key: Key('search-actions-${item.id}'),
+                  layout: layout,
+                  onActionTap: onActionTap,
                 ),
               ),
             ],
