@@ -325,7 +325,7 @@ class NaverWatchlistRepository implements WatchlistRepository {
         StockSearchItem(
           id: id,
           market: MarketType.domestic,
-          marketLabel: item.typeName,
+          marketLabel: item.typeCode,
           symbol: item.code,
           name: item.name,
           isFavorite: favoriteIds.contains(id),
