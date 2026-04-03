@@ -90,8 +90,7 @@ class SearchToast extends StatelessWidget {
                 SizedBox(
                   width: 20,
                   height: 20,
-                  // Note(assignment): Stack으로 하트 위에 체크를 우측 하단에
-                  // overlay — 두 아이콘을 별도 위젯으로 나열하면 위치 합성 불가
+                  // Note(assignment): Stack으로 하트 위에 체크를 overlay
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
@@ -105,8 +104,10 @@ class SearchToast extends StatelessWidget {
                         color: AppColors.mainAndAccent.up_f93f62,
                       ),
                       Positioned(
-                        right: 10 - (AppAssetSizes.toastCheck.width / 2),
-                        bottom: 10 - (AppAssetSizes.toastCheck.height / 2),
+                        // Note(assignment): figma 기준 체크 위치 정가운데 아님
+                        // 정가운데에서 figma와 유사하게 position 수치 1px씩 조정
+                        right: 10 - (AppAssetSizes.toastCheck.width / 2) - 1,
+                        bottom: 10 - (AppAssetSizes.toastCheck.height / 2) + 1,
                         child: AppSvgIcon(
                           key: const Key('search-toast-check-icon'),
                           assetPath: AppAssets.toastCheck,
@@ -121,7 +122,7 @@ class SearchToast extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   // Note(assignment): message가 외부 주입이므로 split으로 키워드를
-                  // 분리해서 색상 따로 적용
+                  // 분리해서 피그마 기준으로 색상 따로 적용
                   child: Text.rich(
                     TextSpan(
                       style: AppTypography.searchToast,
