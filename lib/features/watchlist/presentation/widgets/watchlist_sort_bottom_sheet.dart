@@ -11,18 +11,19 @@ class WatchlistSortBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: Container(
-          key: const Key('watchlist-sort-sheet'),
-          width: double.infinity,
-          padding: const EdgeInsets.only(bottom: 36),
-          decoration: BoxDecoration(
-            color: AppColors.bg.bg_2_212121,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-          ),
+    // Note(assignment): Align > Container > SafeArea 구조로 변경하여
+    // home indicator 영역까지 Container 배경색 적용.
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        key: const Key('watchlist-sort-sheet'),
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: AppColors.bg.bg_2_212121,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        child: SafeArea(
+          top: false,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
