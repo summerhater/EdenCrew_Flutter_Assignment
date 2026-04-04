@@ -60,7 +60,7 @@ class SearchResultRow extends StatelessWidget {
                         // This starter keeps the slot slightly oversized so
                         // the related widget test can guide the fix.
 
-                        // Note(assignment): 피그마에 맞게 20으로 slot size 변경
+                        // Note(assignment): figma에 맞게 20으로 slot size 변경
                         slotWidth: 20,
                         slotHeight: 20,
                         assetWidth: AppAssetSizes.favoriteHeart.width,
@@ -90,85 +90,21 @@ class SearchResultRow extends StatelessWidget {
                 //     borderRadius: BorderRadius.circular(4),
                 //     border: Border.all(color: AppColors.border.border_5_3b3e53),
                 //   ),
-                //   // child: InkWell(
-                  //   onTap: () => onActionTap('TODO'),
-                  //   child: Center(
-                  //     child: Text(
-                  //       'TODO(assignment): SearchActionBar를 Figma 기준으로 재구성하세요.',
-                  //       style: AppTypography.searchMeta,
-                  //       textAlign: TextAlign.center,
-                  //     ),
-                  //   ),
-                  // ),
+                //   child: InkWell(
+                //     onTap: () => onActionTap('TODO'),
+                //     child: Center(
+                //       child: Text(
+                //         'TODO(assignment): SearchActionBar를 Figma 기준으로 재구성하세요.',
+                //         style: AppTypography.searchMeta,
+                //         textAlign: TextAlign.center,
+                //       ),
+                //     ),
+                //   ),
 
-                  // Note(assignment): 뉴스/종목토론 두 액션을 동등 비율(Expanded)로 배치
-                  // 수직 구분선 - 골든 이미지에는 명시되어 있으나 Figma에는 명시되어 있지 않음.
-                  // 컨테이너 border와 동일한 색상으로 시각적 일체감 유지
-                  // child: Row(
-                  //   children: [
-                  //     Expanded(
-                  //       child: GestureDetector(
-                  //         key: const Key('search-action-뉴스'),
-                  //         onTap: () => onActionTap('뉴스'),
-                  //         behavior: HitTestBehavior.opaque,
-                  //         child: Container(
-                  //           key: const Key('search-action-content-뉴스'),
-                  //           alignment: Alignment.center,
-                  //           child: Row(
-                  //             mainAxisAlignment: MainAxisAlignment.center,
-                  //             mainAxisSize: MainAxisSize.min,
-                  //             children: [
-                  //               const SizedBox(width: 2),
-                  //               AppSvgIcon(
-                  //                 assetPath: AppAssets.actionNews,
-                  //                 width: AppAssetSizes.actionNews.width,
-                  //                 height: AppAssetSizes.actionNews.height,
-                  //                 color: AppColors.text.text_fafafa,
-                  //               ),
-                  //               const SizedBox(width: 8),
-                  //               Text('뉴스', style: AppTypography.action),
-                  //             ],
-                  //           ),
-                  //         ),
-                  //       ),
-                  //     ),
-                  //     Container(
-                  //       width: 1,
-                  //       height: 21,
-                  //       color: AppColors.border.border_5_3b3e53,
-                  //     ),
-                  //     Expanded(
-                  //       child: GestureDetector(
-                  //         key: const Key('search-action-종목토론'),
-                  //         onTap: () => onActionTap('종목토론'),
-                  //         behavior: HitTestBehavior.opaque,
-                  //         child: Container(
-                  //           key: const Key('search-action-content-종목토론'),
-                  //           alignment: Alignment.center,
-                  //           child: Row(
-                  //             mainAxisAlignment: MainAxisAlignment.center,
-                  //             mainAxisSize: MainAxisSize.min,
-                  //             children: [
-                  //               const SizedBox(width: 2),
-                  //               AppSvgIcon(
-                  //                 assetPath: AppAssets.actionDiscussion,
-                  //                 width: AppAssetSizes.actionDiscussion.width,
-                  //                 height: AppAssetSizes.actionDiscussion.height,
-                  //                 color: AppColors.text.text_fafafa,
-                  //               ),
-                  //               const SizedBox(width: 6),
-                  //               Text('종목토론', style: AppTypography.action),
-                  //             ],
-                  //           ),
-                  //         ),
-                  //       ),
-                  //     ),
-                  //   ],
-                  // ),
-                // ),
-
-                // Note(assignment): SearchActionBar가 decoration(border, boxShadow, bg)과
-                // 버튼 레이아웃을 캡슐화 — 직접 구현 시 중복 발생하므로 위임
+                // Note(assignment): 이전 코드에서 Container에 붙어있던 key를
+                // 그대로 유지, SearchActionBar가 Stateless라 상태 추적 목적으로
+                // key가 불필요하지만 기존 코드의 의도를 따르고 향후 Stateful로
+                // 변경될 가능성을 고려해 그대로 명시
                 child: SearchActionBar(
                   key: Key('search-actions-${item.id}'),
                   layout: layout,
@@ -197,11 +133,6 @@ class _SearchTextColumn extends StatelessWidget {
     // - query highlight using splitSearchTextParts()
     // - typography and ellipsis should match the design
 
-    // Note(assignment): splitSearchTextParts가 빈 query를 단일 비하이라이트 파트로
-    // 반환하므로 hasQuery 분기 없이 동일 경로로 처리 — 분기 제거로 코드 단순화
-    final titleParts = splitSearchTextParts(item.name, query);
-    final subtitleParts = splitSearchTextParts(buildSearchSubtitle(item), query);
-
     // [이전 구현 — 주석 처리]
     // final hasQuery = query.trim().isNotEmpty;
     // return Column(
@@ -226,6 +157,10 @@ class _SearchTextColumn extends StatelessWidget {
     //   ],
     // );
 
+    // Note(assignment): splitSearchTextParts가 빈 query를 하이라이트하지 않은
+    // 파트로 반환하므로 hasQuery 분기 없이 동일 경로로 처리
+    final titleParts = splitSearchTextParts(item.name, query);
+    final subtitleParts = splitSearchTextParts(buildSearchSubtitle(item), query);
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -238,8 +173,7 @@ class _SearchTextColumn extends StatelessWidget {
                 .map(
                   (part) => TextSpan(
                     text: part.text,
-                    // Note(assignment): 하이라이트 파트만 색상을 교체하고 나머지 폰트
-                    // 속성은 base 스타일에서 상속 — copyWith로 최소 변경
+                    // Note(assignment): 검색어 하이라이트만 색상 교체
                     style: part.isHighlighted
                         ? AppTypography.searchName.copyWith(
                             color: AppColors.mainAndAccent.point_b980ff,
@@ -255,18 +189,33 @@ class _SearchTextColumn extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           text: TextSpan(
-            children: subtitleParts
-                .map(
-                  (part) => TextSpan(
-                    text: part.text,
-                    style: part.isHighlighted
-                        ? AppTypography.searchMeta.copyWith(
-                            color: AppColors.mainAndAccent.point_b980ff,
-                          )
-                        : AppTypography.searchMeta,
+            children: subtitleParts.expand((part) {
+              // Note(assignment): 검색어 하이라이트만 색상 교체
+              final baseStyle = part.isHighlighted
+                  ? AppTypography.searchMeta.copyWith(color: AppColors.mainAndAccent.point_b980ff)
+                  : AppTypography.searchMeta;
+
+              // figma 기준 Subtitle에서 '|' 구분선만 색상이 다르므로 색상 적용을 위해 split
+              final subSplit = part.text.split('|');
+
+              // buildSearchSubtitle에서 무조건 '|'을 포함해 반환하지만,
+              // 만약 어떤 이유로든 | 가 없다면 기본 searchMeta 스타일 적용
+              if (subSplit.length < 2) {
+                return [TextSpan(text: part.text, style: baseStyle)];
+              }
+
+              // '|' 구분선만 색상 변경해서 반환
+              return [
+                TextSpan(text: subSplit[0], style: baseStyle),
+                TextSpan(
+                  text: '|',
+                  style: baseStyle.copyWith(
+                    color: AppColors.border.border_4_424242,
                   ),
-                )
-                .toList(growable: false),
+                ),
+                TextSpan(text: subSplit[1], style: baseStyle),
+              ];
+            }).toList(growable: false)
           ),
         ),
       ],
