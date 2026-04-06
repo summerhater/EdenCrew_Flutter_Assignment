@@ -40,7 +40,7 @@ class SearchActionBar extends StatelessWidget {
             contentStartInset: 60,
             onTap: onActionTap,
           ),
-          // Note(assignment): figma 기준 Divider는 디자인에 포함되지 않으므로 주석 처리
+          // figma 기준 Divider는 디자인에 포함되지 않으므로 주석 처리
           // const _SearchActionDivider(),
           _SearchActionButton(
             layout: layout,

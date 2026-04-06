@@ -60,7 +60,7 @@ class SearchResultRow extends StatelessWidget {
                         // This starter keeps the slot slightly oversized so
                         // the related widget test can guide the fix.
 
-                        // Note(assignment): figma에 맞게 20으로 slot size 변경
+                        // figma에 맞게 20으로 slot size 변경
                         slotWidth: 20,
                         slotHeight: 20,
                         assetWidth: AppAssetSizes.favoriteHeart.width,
@@ -80,7 +80,6 @@ class SearchResultRow extends StatelessWidget {
                 padding: EdgeInsets.symmetric(
                   horizontal: layout.horizontalPadding,
                 ),
-                // [이전 구현 — 주석 처리]
                 // child: Container(
                 //   key: Key('search-actions-${item.id}'),
                 //   height: SearchLayoutSpec.expandedActionHeight,
@@ -101,7 +100,7 @@ class SearchResultRow extends StatelessWidget {
                 //     ),
                 //   ),
 
-                // Note(assignment): 이전 코드에서 Container에 붙어있던 key를
+                // 이전 코드에서 Container에 붙어있던 key를
                 // 그대로 유지, SearchActionBar가 Stateless라 상태 추적 목적으로
                 // key가 불필요하지만 기존 코드의 의도를 따르고 향후 Stateful로
                 // 변경될 가능성을 고려해 그대로 명시
@@ -133,7 +132,6 @@ class _SearchTextColumn extends StatelessWidget {
     // - query highlight using splitSearchTextParts()
     // - typography and ellipsis should match the design
 
-    // [이전 구현 — 주석 처리]
     // final hasQuery = query.trim().isNotEmpty;
     // return Column(
     //   mainAxisAlignment: MainAxisAlignment.center,
@@ -157,7 +155,7 @@ class _SearchTextColumn extends StatelessWidget {
     //   ],
     // );
 
-    // Note(assignment): splitSearchTextParts가 빈 query를 하이라이트하지 않은
+    // splitSearchTextParts가 빈 query를 하이라이트하지 않은
     // 파트로 반환하므로 hasQuery 분기 없이 동일 경로로 처리
     final titleParts = splitSearchTextParts(item.name, query);
     final subtitleParts = splitSearchTextParts(buildSearchSubtitle(item), query);
@@ -173,7 +171,7 @@ class _SearchTextColumn extends StatelessWidget {
                 .map(
                   (part) => TextSpan(
                     text: part.text,
-                    // Note(assignment): 검색어 하이라이트만 색상 교체
+                    // 검색어 하이라이트만 색상 교체
                     style: part.isHighlighted
                         ? AppTypography.searchName.copyWith(
                             color: AppColors.mainAndAccent.point_b980ff,
@@ -190,7 +188,7 @@ class _SearchTextColumn extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           text: TextSpan(
             children: subtitleParts.expand((part) {
-              // Note(assignment): 검색어 하이라이트만 색상 교체
+              // 검색어 하이라이트만 색상 교체
               final baseStyle = part.isHighlighted
                   ? AppTypography.searchMeta.copyWith(color: AppColors.mainAndAccent.point_b980ff)
                   : AppTypography.searchMeta;

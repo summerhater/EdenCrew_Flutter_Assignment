@@ -25,7 +25,7 @@ class SearchController extends Notifier<SearchUiState> {
     // 관련 테스트:
     // - test/features/search/presentation/providers/search_controller_test.dart
 
-    // Note(assignment): ref.watch 대신 ref.listen 사용 — watch는 build 전체를 재실행하므로
+    // ref.watch 대신 ref.listen 사용 — watch는 build 전체를 재실행하므로
     // 검색 상태가 초기화될 수 있음. listen은 콜백만 호출하므로 결과만 갱신 가능
     ref.listen<AsyncValue<Set<String>>>(
       favoriteIdsControllerProvider,
@@ -76,8 +76,8 @@ class SearchController extends Notifier<SearchUiState> {
     // 관련 테스트:
     // - test/features/search/presentation/providers/search_controller_test.dart
 
-    // Note(assignment): 검색 결과 수신 직후 provider의 현재 값으로 isFavorite를 동기화
-    // — ref.listen은 이후 변경만 감지하므로 최초 결과에는 수동 적용이 필요
+    // 검색 결과 수신 직후 provider의 현재 값으로 isFavorite를 동기화
+    // - ref.listen은 이후 변경만 감지 -> 최초 결과에는 수동 적용 필요
     final currentFavoriteIds =
         ref.read(favoriteIdsControllerProvider).valueOrNull;
     state = state.copyWith(
@@ -137,7 +137,7 @@ class SearchController extends Notifier<SearchUiState> {
     // 관련 테스트:
     // - test/features/search/presentation/providers/search_controller_test.dart
 
-    // Note(assignment): toggle 완료 후 provider의 최신 상태로 결과 갱신
+    // toggle 완료 후 provider의 최신 상태로 결과 갱신
     // — toggle이 비동기이므로 완료 시점의 valueOrNull을 읽어야 정확한 상태 반영
     _applyFavoriteIds(ref.read(favoriteIdsControllerProvider).valueOrNull);
 
@@ -157,15 +157,13 @@ class SearchController extends Notifier<SearchUiState> {
     }
     state = state.copyWith(toast: null);
   }
-
-  // ignore: unused_element
+  
   void _showToast(SearchToastData toast) {
     _toastTimer?.cancel();
     state = state.copyWith(toast: toast);
     _toastTimer = Timer(const Duration(seconds: 2), dismissToast);
   }
-
-  // ignore: unused_element
+  
   void _applyFavoriteIds(Set<String>? favoriteIds) {
     // TODO(assignment): favoriteIds에 맞게 현재 results의 isFavorite를 다시 매핑하세요.
     // selected item이 사라진 경우 selectedItemId도 정리해 주세요.
@@ -174,14 +172,14 @@ class SearchController extends Notifier<SearchUiState> {
     if (favoriteIds == null) {
       return;
     }
-    // Note(assignment): results에 값이 없으면 매핑 대상이 없으므로 조기 반환
+    // results에 값이 없으면 매핑 대상 x -> 조기 반환
     if (!state.results.hasValue) return;
 
     final updatedItems = state.results.requireValue
         .map((item) => item.copyWith(isFavorite: favoriteIds.contains(item.id)))
         .toList(growable: false);
 
-    // Note(assignment): 즐겨찾기 변경으로 선택된 아이템이 사라진 경우 selectedItemId 해제
+    // 즐겨찾기 변경으로 선택된 아이템이 사라진 경우 selectedItemId 해제
     final selectedStillPresent = updatedItems.any(
       (item) => item.id == state.selectedItemId,
     );

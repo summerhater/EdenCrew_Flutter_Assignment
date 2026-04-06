@@ -21,7 +21,6 @@ class SearchToast extends StatelessWidget {
     // - 20x20 heart + check composition
     // - message text styling that matches the design
 
-    // [이전 구현 — 주석 처리]
     // return Container(
     //   height: SearchLayoutSpec.toastHeight,
     //   padding: EdgeInsets.symmetric(horizontal: 16 * layout.horizontalScale),
@@ -57,7 +56,7 @@ class SearchToast extends StatelessWidget {
     //   ),
     // );
 
-    // Note(assignment): boxShadow를 ClipRRect 외부 Container에 배치 — ClipRRect
+    // boxShadow를 ClipRRect 외부 Container에 배치 — ClipRRect
     // 내부에 두면 shadow가 clip에 잘려 glow 효과가 표시되지 않기 때문.
     return Container(
       height: SearchLayoutSpec.toastHeight,
