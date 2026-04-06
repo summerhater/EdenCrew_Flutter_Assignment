@@ -171,10 +171,10 @@ Naver API 응답에서 숫자 필드는 `int`, `double`, `String("67,000")` 중 
 
 **어떻게 구현했는지**
 
-- `build()`: `ref.listen<AsyncValue<Set<String>>>(favoriteIdsControllerProvider, (prev, next) => _applyFavoriteIds(next.valueOrNull))`을 추가했습니다.
-- `setQuery()`: 검색 결과 수신 직후 `ref.read(favoriteIdsControllerProvider).valueOrNull`로 현재 값을 읽어 `isFavorite`를 동기화했습니다.
-- `toggleFavorite()`: toggle 완료 후 `_applyFavoriteIds(ref.read(favoriteIdsControllerProvider).valueOrNull)`로 결과를 즉시 갱신하고, `isAdded`가 true면 toast를, false면 `dismissToast()`를 호출했습니다.
-- `_applyFavoriteIds()`: `state.results.requireValue`를 꺼내 각 아이템을 `copyWith(isFavorite: favoriteIds.contains(item.id))`로 재매핑하고, `selectedItemId`가 업데이트된 결과에 없으면 `null`로 해제했습니다.
+- `build()`: 즐겨찾기 목록이 바뀔 때마다 검색 결과의 `isFavorite`를 자동으로 갱신하도록 `ref.listen`을 등록했습니다.
+- `setQuery()`: 검색 결과 수신 직후 `favoriteIdsControllerProvider`의 현재 값을 읽어 `isFavorite`를 동기화했습니다.
+- `toggleFavorite()`: toggle 완료 후 결과를 즉시 갱신하고, 추가 시 toast를, 제거 시 `dismissToast()`를 호출했습니다.
+- `_applyFavoriteIds()`: results를 재매핑하고, `selectedItemId`가 업데이트된 결과에 없으면 `null`로 해제했습니다.
 
 **핵심 판단사항**
 
