@@ -58,12 +58,15 @@ class NaverWatchlistRepository implements WatchlistRepository {
     // );
 
     final favoriteIds = await loadFavoriteIds();
-    // Note(assignment): canonical id에서 6자리 symbol을 추출 — 타입 필터로 null 제거
+
+    // symbol 추출 - 해외,잘못된 형식의 id는 domesticSymbolFromFavoriteId가
+    // null을 반환하므로 whereType으로 제거
     final symbols = favoriteIds
         .map((id) => domesticSymbolFromFavoriteId(id))
         .whereType<String>()
         .toList();
 
+    // 빈 즐겨찾기 -> 빈 스냅샷
     if (symbols.isEmpty) {
       return WatchlistSnapshot(
         asOf: normalizeAsOfDate(asOf ?? DateTime.now()),
@@ -71,13 +74,22 @@ class NaverWatchlistRepository implements WatchlistRepository {
       );
     }
 
+    // 종목명, 거래소 등 메타데이터를 심볼 단위로 batch 로드
     final metadataBySymbol = await _loadMetadataBatch(symbols);
+
+    // 전체 거래 가능일 목록을 가져오고, 요청 날짜(asOf)를 실제 거래일로 보정
+    // asOf가 null이거나 거래일이 아니면 가장 최근 거래일로 fallback
     final availableDates = await fetchAvailableDates();
     final resolvedAsOf = _resolveAsOf(availableDates, asOf);
-    // Note(assignment): latestDate를 전달해 _buildWatchlistItem이 realtime 사용 여부를 판단하게 함
+
+    // _buildWatchlistItem에 availableDates 전체를 넘기는 대신 필요한 값만 추출해 전달
+    // realtime을 쓸지, historical을 쓸지 판단 기준 분리
     final latestDate = availableDates.isNotEmpty ? availableDates.first : null;
+
     final realtimeQuotes = await _loadRealtimeQuotes(symbols);
 
+    // 각 symbol별로 과거 시세 + 실시간 시세를 조합 -> WatchlistItem 구성
+    // 불완전한 항목 노출하지 않기 위해 메타데이터나 시세가 없는 종목은 목록에서 스킵
     final items = <WatchlistItem>[];
     for (final symbol in symbols) {
       final metadata = metadataBySymbol[symbol];
@@ -122,35 +134,64 @@ class NaverWatchlistRepository implements WatchlistRepository {
     //   'TODO(assignment): implement NaverWatchlistRepository.fetchAvailableDates',
     // );
 
+    // 거래일 목록은 세션 중 변하지 않으므로 한 번만 fetch하고 재사용
     if (_availableDatesCache != null) {
       return List.unmodifiable(_availableDatesCache!);
     }
 
-    // Note(assignment): 첫 번째 유효한 favorite symbol을 기준 종목으로 선택
+    // 국내 종목은 모두 KRX 거래일 공유 -> 아무 종목이나 기준으로 삼아도 무방
     final favoriteIds = await loadFavoriteIds();
-    String? referenceSymbol;
-    for (final id in favoriteIds) {
-      final symbol = domesticSymbolFromFavoriteId(id);
-      if (symbol != null) {
-        referenceSymbol = symbol;
-        break;
-      }
-    }
+    final referenceSymbol = _pickReferenceSymbol(favoriteIds);
 
     if (referenceSymbol == null) {
       _availableDatesCache = [];
       return List.unmodifiable(_availableDatesCache!);
     }
 
-    // Note(assignment): page 1을 먼저 요청해 lastPage를 확인한 뒤 나머지를 batch로 fetch
+    // lastPage를 알아야 나머지 페이지의 batch 범위를 결정할 수 있어서 1페이지를 먼저 단독 fetch
     final firstPage = await _loadDailyHistoryPage(referenceSymbol, 1);
-    final lastPage = firstPage.lastPage;
-    final allPages = [firstPage];
+    final remainingPages = await _fetchRemainingHistoryPages(
+      symbol: referenceSymbol,
+      fromPage: 2,
+      lastPage: firstPage.lastPage,
+    );
+    final allPages = [firstPage, ...remainingPages];
 
+    // 모든 페이지의 priceInfo에서 localDate만 추출 후 내림차순 정렬
+    // _resolveAsOf, UI -> availableDates.first == 최신 거래일로 보장해주려고 내림차순 정렬
+    final allDates = allPages
+        .expand((page) => page.priceInfos)
+        .map((row) => row.localDate)
+        .toList();
+    allDates.sort((a, b) => b.compareTo(a));
+
+    _availableDatesCache = allDates;
+    return List.unmodifiable(_availableDatesCache!);
+  }
+
+  // 첫 번째 유효한 domestic symbol 반환 - 거래일 기준 종목 선택용
+  // 국내 종목은 모두 KRX 거래일을 공유하므로 어느 종목을 기준으로 삼아도 결과가 같음
+  String? _pickReferenceSymbol(Iterable<String> favoriteIds) {
+    for (final id in favoriteIds) {
+      final symbol = domesticSymbolFromFavoriteId(id);
+      if (symbol != null) return symbol;
+    }
+    return null;
+  }
+
+  // 페이지가 여러 개인데 순차로 하나씩 기다리면 느리기 때문에
+  // page fromPage부터 lastPage까지를 dailyHistoryFetchBatchSize 단위로 묶어
+  // 병렬 fetch -> 순차 fetch보다 빠름 + 동시 요청 수 제한해 서버 usage 조절
+  Future<List<NaverDailyHistoryPageDto>> _fetchRemainingHistoryPages({
+    required String symbol,
+    required int fromPage,
+    required int lastPage,
+  }) async {
+    final pages = <NaverDailyHistoryPageDto>[];
     for (
-      var pageNum = 2;
-      pageNum <= lastPage;
-      pageNum += dailyHistoryFetchBatchSize
+    var pageNum = fromPage;
+    pageNum <= lastPage;
+    pageNum += dailyHistoryFetchBatchSize
     ) {
       final batchEnd = (pageNum + dailyHistoryFetchBatchSize - 1).clamp(
         pageNum,
@@ -158,18 +199,11 @@ class NaverWatchlistRepository implements WatchlistRepository {
       );
       final batch = await Future.wait([
         for (var p = pageNum; p <= batchEnd; p++)
-          _loadDailyHistoryPage(referenceSymbol, p),
+          _loadDailyHistoryPage(symbol, p),
       ]);
-      allPages.addAll(batch);
+      pages.addAll(batch);
     }
-
-    final allDates =
-        allPages.expand((page) => page.priceInfos).map((row) => row.localDate).toList();
-    // Note(assignment): UI와 _resolveAsOf가 최신 날짜를 .first로 접근하므로 내림차순 정렬
-    allDates.sort((a, b) => b.compareTo(a));
-
-    _availableDatesCache = allDates;
-    return List.unmodifiable(_availableDatesCache!);
+    return pages;
   }
 
   @override
@@ -191,15 +225,19 @@ class NaverWatchlistRepository implements WatchlistRepository {
     //   'TODO(assignment): implement NaverWatchlistRepository.fetchWatchlistDetail',
     // );
 
-    // Note(assignment): 해외 종목은 지원하지 않으므로 즉시 오류 throw
+    // 해외 종목 지원 x - 즉시 에러 throw
     if (market != MarketType.domestic) {
       throw UnsupportedError('Only domestic market is supported');
     }
 
+    // 거래 가능일 목록 로딩 후 요청 날짜를 실제 거래일로 보정
+    // asOf가 null이거나 거래일이 아니라면 가장 최근 거래일로 fallback
     final availableDates = await fetchAvailableDates();
     final resolvedAsOf = _resolveAsOf(availableDates, asOf);
     final latestDate = availableDates.isNotEmpty ? availableDates.first : null;
 
+    // 기준 날짜의 historical row와 전일 종가(previousClose) 로드
+    // previousClose까지 함께 묶어 반환 -> 변동률 계산 기준이 됨
     final historicalEntry = await _loadHistoricalEntryForDate(
       symbol: symbol,
       availableDates: availableDates,
@@ -209,30 +247,24 @@ class NaverWatchlistRepository implements WatchlistRepository {
       throw StateError('No historical data for $symbol on $resolvedAsOf');
     }
 
-    // Note(assignment): selectedIndex 기준으로 최대 30개 거래일 윈도우를 구성
+    // 선택 날짜 기준 최대 30거래일 윈도우 내림차순으로 구성
+    // 캔들,거래량 비율 계산을 위해 30 거래일 슬라이딩 윈도우 구성
+    // availableDates는 내림차순이므로 selectedIndex부터 +30이 과거 방향
     final selectedIndex = _indexOfDate(availableDates, resolvedAsOf) ?? 0;
-    final windowEndIndex = (selectedIndex + 30).clamp(0, availableDates.length);
     final windowDatesDescending = availableDates.sublist(
       selectedIndex,
-      windowEndIndex,
+      (selectedIndex + 30).clamp(0, availableDates.length),
     );
 
-    // Note(assignment): 윈도우 내 페이지들을 로드하고 날짜 키 Map으로 변환
-    final pageNumbers = windowDatesDescending
-        .asMap()
-        .entries
-        .map((e) => _pageNumberForIndex(selectedIndex + e.key))
-        .toSet();
+    // 윈도우 날짜에 해당하는 페이지만 선별 로드 — 전체 히스토리를 불러오지 않기 위해
+    // 페이지 번호로 필터, O(1) 날짜 접근을 위해 Map으로 변환
+    final rowsByDate = await _loadRowsByDateForWindow(
+      symbol: symbol,
+      selectedIndex: selectedIndex,
+      windowDatesDescending: windowDatesDescending,
+    );
 
-    final rowsByDate = <String, NaverHistoricalPriceDto>{};
-    for (final pageNum in pageNumbers) {
-      final page = await _loadDailyHistoryPage(symbol, pageNum);
-      for (final row in page.priceInfos) {
-        rowsByDate[_dateKey(row.localDate)] = row;
-      }
-    }
-
-    // Note(assignment): 최신 거래일에만 실시간 데이터를 사용 — 과거 날짜에 적용하면 시점 불일치 발생
+    // 실시간 데이터는 오늘(최신 거래일)에만 의미 있음 -> 과거 날짜에 쓰면 현재가 섞여서 데이터 오염
     final isLatest = latestDate != null && resolvedAsOf == latestDate;
     NaverRealtimeQuoteDto? realtimeQuote;
     if (isLatest) {
@@ -240,6 +272,8 @@ class NaverWatchlistRepository implements WatchlistRepository {
       realtimeQuote = quotes[symbol];
     }
 
+    // 현재가, 변동폭, 변동률, 거래량 계산
+    // realtime이 있으면 우선 사용, 없거나 과거 날짜면 historical로 fallback
     final selectedRow = historicalEntry.row;
     final previousClose = historicalEntry.previousClose;
 
@@ -254,6 +288,7 @@ class NaverWatchlistRepository implements WatchlistRepository {
         ? realtimeQuote.accumulatedTradingVolume
         : selectedRow.accumulatedTradingVolume;
 
+    // 모든 필드 조합 -> WatchlistDetail 반환
     return WatchlistDetail(
       itemId: canonicalDomesticFavoriteId(symbol),
       symbol: symbol,
@@ -289,6 +324,29 @@ class NaverWatchlistRepository implements WatchlistRepository {
     );
   }
 
+  // 윈도우 날짜 범위에 해당하는 페이지들을 로드 -> 날짜 키 Map으로 변환.
+  // 중복 페이지 번호 제거해 같은 페이지 두 번 요청 X
+  Future<Map<String, NaverHistoricalPriceDto>> _loadRowsByDateForWindow({
+    required String symbol,
+    required int selectedIndex,
+    required List<DateTime> windowDatesDescending,
+  }) async {
+    final pageNumbers = windowDatesDescending
+        .asMap()
+        .entries
+        .map((e) => _pageNumberForIndex(selectedIndex + e.key))
+        .toSet();
+
+    final rowsByDate = <String, NaverHistoricalPriceDto>{};
+    for (final pageNum in pageNumbers) {
+      final page = await _loadDailyHistoryPage(symbol, pageNum);
+      for (final row in page.priceInfos) {
+        rowsByDate[_dateKey(row.localDate)] = row;
+      }
+    }
+    return rowsByDate;
+  }
+
   @override
   Future<List<StockSearchItem>> searchStocks({required String query}) async {
     // TODO(assignment): Search domestic stocks and convert them into
@@ -309,17 +367,19 @@ class NaverWatchlistRepository implements WatchlistRepository {
     final trimmedQuery = query.trim();
     if (trimmedQuery.isEmpty) return [];
 
+    // isFavorite 판별에 favoriteIds가 필요하므로 순차 로드
     final favoriteIds = await loadFavoriteIds();
     final rawItems = await _client.searchStocks(trimmedQuery);
 
-    // Note(assignment): 중복 symbol 제거 — Naver 자동완성이 같은 종목을 여러 번 반환할 수 있음
+    // 동일 symbol을 중복 반환 -> Set으로 중복 차단
     final seenSymbols = <String>{};
     final results = <StockSearchItem>[];
 
     for (final item in rawItems) {
       if (!item.isDomesticStock) continue;
-      if (!seenSymbols.add(item.code)) continue;
+      if (!seenSymbols.add(item.code)) continue; // 이미 추가된 symbol이면 스킵
 
+      // canonical id 생성 후 즐겨찾기 여부 판별
       final id = canonicalDomesticFavoriteId(item.code);
       results.add(
         StockSearchItem(

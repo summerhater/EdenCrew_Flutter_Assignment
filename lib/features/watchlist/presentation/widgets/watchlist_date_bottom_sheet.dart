@@ -206,7 +206,7 @@ class _WatchlistDateBottomSheetState extends State<WatchlistDateBottomSheet> {
     // - selected state styling
     // - cancel / confirm CTA row
 
-    // Note(assignment): Align > Container > SafeArea 구조로 변경하여
+    // Align > Container > SafeArea 구조로 변경하여
     // figma에 맞게 home indicator 영역까지 Container 배경색 적용.
     return Align(
       alignment: Alignment.bottomCenter,
@@ -231,7 +231,6 @@ class _WatchlistDateBottomSheetState extends State<WatchlistDateBottomSheet> {
                   ),
                 ),
               ),
-              // [이전 구현 — 주석 처리]
               // SizedBox(
               //   height: _pickerHeight,
               //   child: Center(
@@ -244,8 +243,7 @@ class _WatchlistDateBottomSheetState extends State<WatchlistDateBottomSheet> {
               //   ),
               // ),
 
-              // Note(assignment): 연/월/일 picker를 각각 Expanded로 감싸 동등한
-              // 너비 배분 (figma 기준으로 판단)
+              // 연/월/일 picker를 각각 Expanded로 감싸 동등한 너비 배분 (figma 기준으로 판단)
               // 모든 인자 required이므로 각각 상단에 미리 정의된 지역 함수/변수를 활용해 지정
               SizedBox(
                 height: _pickerHeight,

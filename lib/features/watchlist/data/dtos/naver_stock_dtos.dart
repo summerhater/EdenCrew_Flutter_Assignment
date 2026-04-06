@@ -83,7 +83,7 @@ class NaverRealtimeQuoteDto {
     //   'TODO(assignment): implement NaverRealtimeQuoteDto.fromJson',
     // );
 
-    // Note(assignment): countOfListedStock은 없을 경우 0으로
+    // countOfListedStock은 없을 경우 0으로
     // fallback하여 marketCap 계산 시 null 예외 방지
     return NaverRealtimeQuoteDto(
       symbol:                   _readString(json['cd']),
@@ -161,8 +161,8 @@ class NaverHistoricalPriceDto {
     //   'TODO(assignment): implement NaverHistoricalPriceDto.fromJson',
     // );
 
-    // Note(assignment): _readLocalDate가 yyyyMMdd 8자리 문자열을 DateTime으로 변환하며
-    // normalizeAsOfDate로 시간 정보를 제거 — 날짜 동등 비교 시 시간 불일치 방지
+    // _readLocalDate가 yyyyMMdd 8자리 문자열을 DateTime으로 변환하며
+    // normalizeAsOfDate로 시간 정보를 제거 -> 날짜 동등 비교 시 시간 불일치 방지
     return NaverHistoricalPriceDto(
       localDate:                _readLocalDate(json['localDate']),
       closePrice:               _readDouble(json['closePrice']),
@@ -195,8 +195,7 @@ class NaverHistoricalChartDto {
     //   'TODO(assignment): implement NaverHistoricalChartDto.fromJson',
     // );
 
-    // Note(assignment): json['code'] 키를 symbol에 매핑
-    // —> API 응답의 최상위 식별자가 'code'이므로
+    // API 응답의 최상위 식별자가 'code' -> json['code'] 키를 symbol에 매핑
     final rawPriceInfos = json['priceInfos'] as List<dynamic>;
     return NaverHistoricalChartDto(
       symbol:     _readString(json['code']),

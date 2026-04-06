@@ -11,7 +11,7 @@ class WatchlistSortBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Note(assignment): Align > Container > SafeArea 구조로 변경하여
+    // Align > Container > SafeArea 구조로 변경하여
     // home indicator 영역까지 Container 배경색 적용.
     return Align(
       alignment: Alignment.bottomCenter,
