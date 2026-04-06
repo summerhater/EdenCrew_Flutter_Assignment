@@ -56,6 +56,7 @@ Figma 기준으로 맞추는 UI 구현이 과제의 핵심 중 하나이기에, 
   1. search results 원인
     - 뉴스/종목토론 버튼(searchActionBar)의 구분선 : figma에는 구분선이 없지만 골든 이미지에는 구분선이 있습니다. figma 기준으로 맞추기 위해 _SearchActionDivider()를 주석으로 숨겼습니다.
     - Subtitle의 '|' 구분선 : figma와 골든 이미지의 구분선 색상이 다릅니다. figma 기준으로 맞췄습니다.
+      
   2. favorite toast state 원인
     - 1과 마찬가지로 Subtitle의 '|' 구분선 색상이 다릅니다.
     - 골든 이미지에서는 하트 아이콘과 토스트 메세지가 수평 중앙 정렬이 아닙니다. figma 상에서는 수평 중앙 정렬이므로 토스트 메세지 위치가 다릅니다.
@@ -139,7 +140,7 @@ Naver API 응답에서 숫자 필드는 `int`, `double`, `String("67,000")` 중 
 
 - **`ResponseType.plain`**: body가 String으로 도착하는 경우가 있어 Dio 자동 디코딩 비활성화 → `_decodeJsonObjectBody`에서 타입별로 직접 처리 (`fetchRealtimeQuotes`도 동일)
 - **`bytes + latin1` (HTML 파싱)**: 네이버 금융은 EUC-KR 인코딩 → `plain`으로 받으면 UTF-8 해석 오류 → raw bytes를 `latin1`으로 1:1 변환하면 날짜/숫자 파싱 정상
-- **`areas.first`**: 국내 전용 단일 요청이므로 `areas`는 항상 1개 → `first`로 충분, Map으로 반환해 호출 측 O(1) 조회
+- **`areas.first`**: 국내 전용 단일 요청이므로 `areas`는 항상 1개 → `first`로 충분
 - **HTML 행 필터링**: class/id 속성은 언제든 바뀔 수 있음 → `yyyy.MM.dd` 패턴 + `cells.length < 7` 이중 조건으로 데이터 행만 선별
 - **`fetchDailyHistoryPage` 헬퍼 분리**: 요청/파싱/변환 단계를 독립 메서드로 분리 → 문제 발생 단계 즉시 파악 가능
 
@@ -152,7 +153,7 @@ Naver API 응답에서 숫자 필드는 `int`, `double`, `String("67,000")` 중 
 4개 메서드를 구현하면서 헬퍼 메서드 3개를 추가했습니다.
 
 - `_pickReferenceSymbol`: 거래일 기준 종목 선택
-- `_fetchRemainingHistoryPages`: 나머지 페이지 배치 병렬 fetch
+- `_fetchRemainingHistoryPages`: 나머지 페이지 Future.wait로 한꺼번에 요청
 - `_loadRowsByDateForWindow`: 30거래일 윈도우에 해당하는 페이지 선별 로드
 
 기존에 구현된 `_loadMetadataBatch`, `_loadRealtimeQuotes`, `_loadDailyHistoryPage`, `_loadHistoricalEntryForDate`, `_buildWatchlistItem`, `_resolveAsOf`, `_volumeRatio`, `_candles`, `_percentChange` 헬퍼를 최대한 활용했습니다.
@@ -160,7 +161,7 @@ Naver API 응답에서 숫자 필드는 `int`, `double`, `String("67,000")` 중 
 **핵심 판단사항**
 
 - **기준 종목 임의 선택**: 국내 종목 전체가 KRX 거래일 공유 → 첫 번째 유효 symbol을 기준으로 삼아도 결과 동일
-- **1페이지 선순위 fetch**: `lastPage`를 먼저 알아야 나머지 배치 범위 결정 가능 → 1페이지 단독 fetch 후 나머지를 `Future.wait` 병렬 처리
+- **1페이지 선순위 fetch**: `lastPage`를 먼저 알아야 나머지 배치 범위 결정 가능 → 1페이지 단독 fetch 후 나머지를 한번에 동시 요청
 - **과거 날짜에 realtime 미적용**: 실시간 데이터는 현재 시점 기준 → 과거 날짜에 쓰면 "현재가 ≠ 해당일 종가" 불일치 → 최신 거래일(`isLatest`)에만 적용
 - **`latestDate`만 전달**: realtime/historical 판단 기준을 `_buildWatchlistItem` 시그니처에서 명확히 드러내기 위해 `availableDates` 전체 대신 필요한 값만 전달
 
@@ -179,7 +180,6 @@ Naver API 응답에서 숫자 필드는 `int`, `double`, `String("67,000")` 중 
 
 - **`ref.listen` 선택**: `ref.watch`는 `favoriteIdsControllerProvider` 변경 시 `build()` 전체 재실행 → `SearchUiState()` 초기화 → 검색어/결과/선택 상태 소실. `ref.listen`은 콜백만 호출하므로 기존 state를 보존하면서 `isFavorite`만 갱신 가능
 - **첫 결과에 수동 동기화**: `ref.listen`은 provider가 변경될 때만 트리거 → 첫 검색 결과 수신 시점엔 `favoriteIdsControllerProvider` 상태가 바뀌지 않음 → `ref.read`로 직접 읽어 적용
-- **`// ignore: unused_element` 스테일**: `_showToast`, `_applyFavoriteIds`에 달린 주석은 호출부가 없던 시점에 추가한 것 → 구현 완료 후 두 메서드 모두 호출되므로 제거 대상
 
 ---
 
@@ -187,7 +187,8 @@ Naver API 응답에서 숫자 필드는 `int`, `double`, `String("67,000")` 중 
 
 **어떻게 구현했는지**
 
-- `_SearchTextColumn`: 기존 `Text` 2개를 `RichText` + `TextSpan` 리스트로 교체했습니다. `splitSearchTextParts(text, query)`로 일치 구간과 비일치 구간을 분리하고, 하이라이트 구간에만 `point_b980ff` 색상을 적용했습니다. subtitle의 `|` 구분선은 별도 `TextSpan`으로 분리해 `border_4_424242` 색상을 적용했습니다.
+- `_SearchTextColumn`: 기존 `Text` 2개를 `RichText` + `TextSpan` 리스트로 교체했습니다. `splitSearchTextParts(text, query)`로 일치 구간과 일치하지 않는 구간을 분리 -> 하이라이트 구간에만 `point_b980ff` 색상을 적용했습니다.
+- subtitle의 `|` 구분선은 별도 `TextSpan`으로 분리해 `border_4_424242` 색상을 적용했습니다.
 - `SearchActionBar`: 기존 플레이스홀더를 `SearchActionBar` 위젯으로 교체했습니다.
 
 **핵심 판단사항**
@@ -229,13 +230,12 @@ Naver API 응답에서 숫자 필드는 `int`, `double`, `String("67,000")` 중 
 
 **어떻게 구현했는지**
 
-`_showDateBottomSheet`에서 기존 TODO 위치에 한 줄만 추가했습니다.
+초기에는 `setAsOf` 이후 `await _syncSelectedDetailWithSnapshot()`을 명시적으로 호출하는 식으로 작성하였는데, `ref.listen`이 이미 처리하고 있어서 제거했습니다.
+
 
 ```dart
 await ref.read(watchlistControllerProvider.notifier).setAsOf(normalizedDate);
 ```
-
-초기에는 `setAsOf` 이후 `await _syncSelectedDetailWithSnapshot()`을 명시적으로 호출하는 식으로 작성하였는데, `ref.listen`이 이미 처리하고 있어서 제거했습니다.
 
 **왜 그렇게 했는지**
 
@@ -249,7 +249,7 @@ ref.listen<AsyncValue<WatchlistSnapshot>>(watchlistControllerProvider, (previous
 });
 ```
 
-`setAsOf`가 `watchlistControllerProvider` 상태를 갱신하면 이 `ref.listen`이 자동으로 `_syncSelectedDetailWithSnapshot()`을 호출합니다. `_showDateBottomSheet`에서 한 번 더 명시적으로 호출하면 동기화가 두 번 실행되어 불필요한 네트워크 요청이 발생합니다.
+`setAsOf`가 `watchlistControllerProvider` 상태를 갱신하면 이 `ref.listen`이 자동으로 `_syncSelectedDetailWithSnapshot()`을 호출합니다. `_showDateBottomSheet`에서 한 번 더 명시적으로 호출 -> 동기화 두 번 실행됨 -> 리소스 낭비
 
 ---
 
